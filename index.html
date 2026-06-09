@@ -34,18 +34,19 @@
             text-align: center;
         }
 
-        /* Logos en-tête */
-        .brand-logos {
+        /* Logo Unique Google */
+        .brand-logo-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .brand-logos img {
-            height: 35px;
+        .brand-logo-container img {
+            height: 60px;
+            width: 60px;
             object-fit: contain;
+            border-radius: 50%;
         }
 
         h2 {
@@ -170,7 +171,7 @@
         .divider:not(:empty)::before { margin-right: .5em; }
         .divider:not(:empty)::after { margin-left: .5em; }
 
-        /* Bouton Google Officiel */
+        /* Bouton Google Officiel mis à jour */
         .btn-google {
             width: 100%;
             padding: 12px;
@@ -195,8 +196,9 @@
         }
 
         .btn-google img {
-            height: 20px;
-            width: 20px;
+            height: 22px;
+            width: 22px;
+            object-fit: contain;
         }
 
         /* Messages d'alerte */
@@ -214,22 +216,18 @@
 <body>
 
     <div class="login-container">
-        <!-- Vrais Logos Officiels -->
-        <div class="brand-logos">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Google-Firebase-Logo.svg" alt="Firebase Logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android Logo">
+        <div class="brand-logo-container">
+            <img src="https://static.dezeen.com/uploads/2025/05/sq-google-g-logo-update_dezeen_2364_col_0.jpg" alt="Google Logo">
         </div>
 
         <h2>Parental Control</h2>
         <p class="subtitle">Gérez et synchronisez votre application Android</p>
 
-        <!-- Sélecteur d'onglets -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('login')">Connexion</button>
             <button class="tab-btn" onclick="switchTab('register')">Inscription</button>
         </div>
 
-        <!-- FORMULAIRE DE CONNEXION -->
         <div id="loginPanel" class="form-panel active">
             <form id="loginForm">
                 <div class="input-group">
@@ -244,7 +242,6 @@
             </form>
         </div>
 
-        <!-- FORMULAIRE D'INSCRIPTION -->
         <div id="registerPanel" class="form-panel">
             <form id="registerForm">
                 <div class="input-group">
@@ -261,13 +258,11 @@
 
         <div class="divider">ou</div>
 
-        <!-- BOUTON CONNEXION / INSCRIPTION GOOGLE -->
         <button id="googleBtn" class="btn-google">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_\"G\"_logo.svg" alt="Google G Logo">
+            <img src="https://static.dezeen.com/uploads/2025/05/sq-google-g-logo-update_dezeen_2364_col_0.jpg" alt="Google G Logo">
             Continuer avec Google
         </button>
 
-        <!-- Zones de notifications -->
         <div id="errorAlert" class="alert alert-error"></div>
         <div id="successAlert" class="alert alert-success"></div>
     </div>
@@ -282,7 +277,7 @@
 
             if(type === 'login') {
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('loginPanel').add('active');
+                document.getElementById('loginPanel').classList.add('active');
             } else {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('registerPanel').classList.add('active');
@@ -290,22 +285,22 @@
         }
     </script>
 
-    <!-- Intégration Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-        // REMPLACEZ PAR VOTRE CONFIGURATION FIREBASE OBTENUE SUR VOTRE CONSOLE
-        const firebaseConfig = {
-            apiKey: "VOTRE_API_KEY",
-            authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://VOTRE_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "VOTRE_PROJECT_ID",
-            storageBucket: "VOTRE_PROJECT_ID.appspot.com",
-            messagingSenderId: "VOTRE_SENDER_ID",
-            appId: "VOTRE_APP_ID"
-        };
+        // CONFIGURATION FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyB5XclNnEMI7HLM8Y-eJhzAqpcVQYU1UW0",
+  authDomain: "historique-enfant.firebaseapp.com",
+  databaseURL: "https://historique-enfant-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "historique-enfant",
+  storageBucket: "historique-enfant.firebasestorage.app",
+  messagingSenderId: "47422984982",
+  appId: "1:47422984982:web:f3027b0a2f034c98427637",
+  measurementId: "G-Z2LK16GF10"
+};
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -327,7 +322,7 @@
             }
         }
 
-        // Action d'interconnexion en écriture sur la base de données
+        // Synchronisation en écriture
         function syncUserWithApp(user, method) {
             set(ref(database, 'users/' + user.uid), {
                 email: user.email,
@@ -339,7 +334,7 @@
             }).catch(e => showAlert('error', "Erreur de sync database : " + e.message));
         }
 
-        // 1. FORMULAIRE CONNEXION CLASSIQUE
+        // 1. CONNEXION CLASSIQUE
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -350,7 +345,7 @@
                 .catch((error) => showAlert('error', "Erreur : " + error.message));
         });
 
-        // 2. FORMULAIRE INSCRIPTION CLASSIQUE
+        // 2. INSCRIPTION CLASSIQUE
         document.getElementById('registerForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('registerEmail').value;
@@ -361,7 +356,7 @@
                 .catch((error) => showAlert('error', "Erreur : " + error.message));
         });
 
-        // 3. SE CONNECTER / S'INSCRIRE AVEC GOOGLE
+        // 3. AUTHENTIFICATION AVEC GOOGLE
         document.getElementById('googleBtn').addEventListener('click', () => {
             signInWithPopup(auth, googleProvider)
                 .then((result) => syncUserWithApp(result.user, "Google Auth"))
