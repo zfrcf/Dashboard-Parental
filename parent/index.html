@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle Parental - Espace Parent Suivi</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: white; }
+        .dashboard-container { width: 100%; max-width: 900px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border-radius: 24px; padding: 35px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px; margin-bottom: 30px; }
+        .btn-logout { padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
+        @media (max-width: 768px) { .dash-grid { grid-template-columns: 1fr; } }
+        .card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 25px; }
+        .card h3 { font-size: 16px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; }
+        .live-app-box { display: flex; align-items: center; gap: 15px; }
+        .live-indicator { width: 12px; height: 12px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
+        #currentApp { font-size: 22px; font-weight: 700; }
+        .btn-lock { background: #ef4444; color: white; width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-lock.locked { background: #22c55e; }
+        .history-table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 15px; }
+        .history-table th, .history-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .history-table th { color: #94a3b8; font-size: 14px; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="dash-header">
+            <div>
+                <h2>Espace Parent : Suivi Enfant</h2>
+                <p id="parentEmail" style="color: #94a3b8; font-size: 14px;"></p>
+            </div>
+            <button class="btn-logout" id="logoutBtn">Déconnexion</button>
+        </div>
+
+        <div class="dash-grid">
+            <div class="card">
+                <h3>Activité en Direct</h3>
+                <div class="live-app-box">
+                    <div class="live-indicator"></div>
+                    <span id="currentApp">Recherche de l'appareil...</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Sécurité Appareil</h3>
+                <button class="btn-lock" id="lockBtn" onclick="toggleLock()">Bloquer l'appareil</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Historique des applications</h3>
+            <table class="history-table">
+                <thead>
+                    <tr><th>Application</th><th>Heure</th></tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr><td colspan="2" style="text-align: center; color: #64748b;">Aucun historique</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://VOTRE_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_PROJECT_ID.appspot.com",
+            messagingSenderId: "VOTRE_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        let currentUserUid = null;
+        let isDeviceLocked = false;
+
+        // VERIFICATION DE SECURITE : EXPULSION SI PAS CONNECTÉ
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserUid = user.uid;
+                document.getElementById('parentEmail').innerText = "Session : " + user.email;
+                startRealtimeTracking(user.uid);
+            } else {
+                window.location.href = "/"; // Retour à la connexion
+            }
+        });
+
+        function startRealtimeTracking(uid) {
+            onValue(ref(database, 'users/' + uid), (snapshot) => {
+                const data = snapshot.val();
+                if(data) {
+                    if(data.currentAppOpen) document.getElementById('currentApp').innerText = data.currentAppOpen;
+                    
+                    isDeviceLocked = data.appareilBloque || false;
+                    const lockBtn = document.getElementById('lockBtn');
+                    lockBtn.innerText = isDeviceLocked ? "Débloquer l'appareil" : "Bloquer l'appareil";
+                    lockBtn.className = isDeviceLocked ? "btn-lock locked" : "btn-lock";
+
+                    if(data.historique) {
+                        const tbody = document.getElementById('historyBody');
+                        tbody.innerHTML = "";
+                        Object.keys(data.historique).reverse().forEach(key => {
+                            const item = data.historique[key];
+                            tbody.innerHTML += `<tr><td>${item.packageName}</td><td>${new Date(item.timestamp).toLocaleTimeString()}</td></tr>`;
+                        });
+                    }
+                }
+            });
+        }
+
+        window.toggleLock = function() {
+            if(currentUserUid) set(ref(database, `users/${currentUserUid}/appareilBloque`), !isDeviceLocked);
+        };
+
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+    </script>
+</body>
+</html>
