@@ -3,173 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moniteur Parental - Tableau de Bord</title>
+    <title>Contrôle Parental - Connexion Panel</title>
     <style>
-        :root {
-            --bg-primary: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --app-color: #3b82f6;
-            --web-color: #10b981;
-            --warn-color: #ef4444;
-            --border: #e2e8f0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-main);
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        header {
-            background-color: #0f172a;
-            color: white;
-            padding: 20px;
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-        header p { margin: 5px 0 0 0; color: #94a3b8; font-size: 14px; }
-
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         h2 {
-            font-size: 18px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 10px;
-            margin-top: 0;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 28px;
         }
 
-        .log-list {
-            max-height: 600px;
-            overflow-y: auto;
+        p.subtitle {
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            font-size: 14px;
         }
 
-        .log-item {
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
             display: block;
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
+            color: #ffffff;
             margin-bottom: 8px;
-            border-radius: 6px;
-            background: #fdfdfd;
-        }
-        
-        .log-item:hover {
-            background: #f1f5f9;
+            font-size: 14px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 4px;
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: #white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        input::placeholder {
+            color: #dddddd;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            border: none;
+            border-radius: 8px;
             color: white;
-            margin-right: 10px;
-            text-transform: uppercase;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
         }
 
-        .badge-install { background-color: var(--app-color); }
-        .badge-uninstall { background-color: var(--warn-color); }
-        .badge-web { background-color: var(--web-color); }
-        .badge-usage { background-color: #8b5cf6; }
+        .btn-login:hover {
+            background: #5a6fd6;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
 
-        .item-details { font-weight: 500; }
-        .timestamp { float: right; color: #64748b; font-size: 13px; }
-        .clearfix::after { content: ""; clear: both; display: table; }
+        #error-message {
+            color: #ff4d4d;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        #success-message {
+            color: #2ecc71;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>Supervision Parentale en Temps Réel</h1>
-    <p>Connecté au projet Firebase : historique-enfant</p>
-</header>
+    <div class="login-container">
+        <h2>Parental Control</h2>
+        <p class="subtitle">Connectez-vous pour synchroniser l'application</p>
 
-<div class="container">
-    <div class="card">
-        <h2>Flux d'activités récents du téléphone</h2>
-        <div id="logs" class="log-list">Connexion en cours aux serveurs Firebase...</div>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Adresse Email Parents</label>
+                <input type="email" id="email" placeholder="exemple@mail.com" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-login">Se connecter</button>
+        </form>
+
+        <div id="error-message"></div>
+        <div id="success-message">Connexion réussie ! Synchronisation en cours...</div>
     </div>
-</div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-  // Configuration injectée automatiquement avec vos identifiants réels
-  const firebaseConfig = {
-    apiKey: "AIzaSyB5XclNnEMI7HLM8Y-eJhzAqpcVQYU1UW0",
-    authDomain: "historique-enfant.firebaseapp.com",
-    databaseURL: "https://historique-enfant-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "historique-enfant",
-    storageBucket: "historique-enfant.firebasestorage.app",
-    messagingSenderId: "47422984982",
-    appId: "1:47422984982:web:f3027b0a2f034c98427637",
-    measurementId: "G-Z2LK16GF10"
-  };
+        // CONFIGURATION CONFIG FIREBASE (Copiez-la depuis votre console Firebase)
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://VOTRE_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_PROJECT_ID.appspot.com",
+            messagingSenderId: "VOTRE_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+        // Initialisation de Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
 
-  const q = query(collection(db, "historique_enfant"), orderBy("timestamp", "desc"));
-  
-  onSnapshot(q, (querySnapshot) => {
-      const logsContainer = document.getElementById("logs");
-      if (querySnapshot.empty) {
-          logsContainer.innerHTML = "<p style='color: #64748b; text-align:center;'>Aucune activité détectée pour le moment. En attente des signaux du téléphone.</p>";
-          return;
-      }
-      
-      logsContainer.innerHTML = "";
-      
-      querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const date = new Date(data.timestamp).toLocaleString("fr-FR");
-          const div = document.createElement("div");
-          div.className = "log-item clearfix";
-          
-          let badgeHTML = "";
-          let description = "";
+        // Gestion de la soumission du formulaire
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
 
-          if (data.type === "application") {
-              if (data.action === "installation") {
-                  badgeHTML = `<span class="badge badge-install">Installation</span>`;
-                  description = `L'enfant a installé l'application : <span class="item-details">${data.nom}</span>`;
-              } else {
-                  badgeHTML = `<span class="badge badge-uninstall">Suppression</span>`;
-                  description = `L'enfant a désinstallé l'application : <span class="item-details">${data.nom}</span>`;
-              }
-          } else if (data.type === "usage_application") {
-              badgeHTML = `<span class="badge badge-usage">Activité</span>`;
-              description = `Ouverture de l'app <span class="item-details">${data.nom}</span> (Utilisée ${data.duree_secondes} sec)`;
-          } else if (data.type === "site_web") {
-              badgeHTML = `<span class="badge badge-web">Web</span>`;
-              description = `Consultation du site internet : <span class="item-details">${data.nom}</span>`;
-          }
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
 
-          div.innerHTML = `
-              <div style="float: left;">${badgeHTML} ${description}</div>
-              <div class="timestamp">${date}</div>
-          `;
-          logsContainer.appendChild(div);
-      });
-  });
-</script>
+            // 1. Connexion de l'utilisateur sur le Web
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    successDiv.style.display = 'block';
+
+                    // 2. INTERCONNEXION : On met à jour un statut dans la base de données
+                    // L'application Android écoute ce nœud et réagira immédiatement
+                    set(ref(database, 'users/' + user.uid), {
+                        panelWebConnecte: true,
+                        derniereConnexionWeb: new Date().toISOString()
+                    });
+                })
+                .catch((error) => {
+                    errorDiv.innerText = "Erreur : " + error.message;
+                    errorDiv.style.display = 'block';
+                });
+        });
+    </script>
 </body>
 </html>
